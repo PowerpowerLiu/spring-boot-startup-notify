@@ -2,7 +2,7 @@
 
 > Get a macOS desktop notification the moment your Spring Boot app finishes starting up — no more staring at fast-scrolling logs.
 
-![macOS notification popup showing "Spring Boot Ready - in 48.2 seconds"](https://img.shields.io/badge/platform-macOS-lightgrey)
+![macOS](https://img.shields.io/badge/platform-macOS-lightgrey)
 ![Shell](https://img.shields.io/badge/shell-bash-green)
 
 ## The Problem
@@ -11,9 +11,9 @@ Spring Boot logs scroll fast. The "Started XxxApplication in XX seconds" line di
 
 ## How It Works
 
-A background shell script watches your log file with `tail -F`, detects the startup keyword, and fires a macOS notification via `osascript`.
+A shell script watches your log file with `tail -F`, detects the startup keyword, and fires a macOS notification via `osascript`.
 
-It runs as a **macOS LaunchAgent** — starts on login, restarts automatically, and works regardless of how you launch the app (IntelliJ Run, Debug, command line, etc.).
+It runs as a **macOS Login Item app** — starts automatically on login, runs with full user permissions (no FDA required), and works regardless of how you launch the app (IntelliJ Run, Debug, command line, etc.).
 
 ## Setup
 
@@ -47,7 +47,9 @@ KEYWORD="Started AllInOne in"
 bash install.sh
 ```
 
-That's it. The next time your app starts, you'll get a notification like:
+This creates `/Applications/SpringBootNotify.app` and adds it to your Login Items. It starts monitoring immediately — no restart needed.
+
+The next time your app starts, you'll get a notification like:
 
 ```
 ✅ Spring Boot Ready
@@ -73,16 +75,15 @@ Use the relevant part as your `KEYWORD`. Common patterns:
 ## Uninstall
 
 ```bash
-launchctl unload ~/Library/LaunchAgents/com.springboot-notify.plist
-rm ~/Library/LaunchAgents/com.springboot-notify.plist
+bash uninstall.sh
 ```
 
 ## Troubleshooting
 
-**No notification?**
-1. Check macOS notification permissions: System Settings → Notifications → Terminal (or your shell) → Allow
+**No notification after install?**
+1. Check macOS notification permissions: System Settings → Notifications → Script Editor → Allow
 2. Check the monitor log: `tail -f /tmp/springboot-notify.log`
 3. Test manually: `osascript -e 'display notification "test" with title "test"'`
 
-**Notification permission denied?**
+**Notification permission prompt doesn't appear?**
 Run the osascript test above — macOS will prompt you to allow notifications the first time.

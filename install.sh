@@ -1,8 +1,8 @@
 #!/bin/bash
-# Installs spring-boot-startup-notify as a macOS LaunchAgent.
+# Installs spring-boot-startup-notify as a macOS Login Item app.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PLIST_DEST="$HOME/Library/LaunchAgents/com.springboot-notify.plist"
+APP_PATH="/Applications/SpringBootNotify.app"
 
 # Check notify.conf exists
 if [ ! -f "$SCRIPT_DIR/notify.conf" ]; then
@@ -12,17 +12,24 @@ if [ ! -f "$SCRIPT_DIR/notify.conf" ]; then
     exit 1
 fi
 
-# Generate plist from example, injecting the real script path
-sed "s|/path/to/spring-boot-startup-notify/notify.sh|$SCRIPT_DIR/notify.sh|g" \
-    "$SCRIPT_DIR/com.springboot-notify.plist.example" > "$PLIST_DEST"
-
 chmod +x "$SCRIPT_DIR/notify.sh"
 
-# Unload if already loaded
-launchctl unload "$PLIST_DEST" 2>/dev/null
+# Create AppleScript app that launches the monitor script
+cat > /tmp/springboot-notify.applescript << EOF
+on run
+    do shell script "/bin/bash $SCRIPT_DIR/notify.sh > /tmp/springboot-notify.log 2>&1 &"
+end run
+EOF
 
-# Load
-launchctl load "$PLIST_DEST"
+osacompile -o "$APP_PATH" /tmp/springboot-notify.applescript
+rm /tmp/springboot-notify.applescript
+
+# Add to Login Items (runs at login with full user permissions)
+osascript -e "tell application \"System Events\" to make login item at end with properties {path:\"$APP_PATH\", hidden:true}"
+
+# Launch immediately
+open "$APP_PATH"
 
 echo "✅ Installed. Monitoring started."
-echo "   Log: tail -f /tmp/springboot-notify.log"
+echo "   Notification log: tail -f /tmp/springboot-notify.log"
+echo "   To uninstall: bash uninstall.sh"
