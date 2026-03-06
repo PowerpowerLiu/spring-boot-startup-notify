@@ -1,0 +1,15 @@
+# Path to your application log file
+LOG_FILE="/Users/yourname/logs/app.log"
+
+# Keyword to match in the log — use the startup success message of your app.
+# Spring Boot default: "Started XxxApplication in"
+# Examples:
+#   KEYWORD="Started AllInOne in"
+#   KEYWORD="Started Scheduler in"
+#   KEYWORD="Application startup complete"
+KEYWORD="Started MyApp in"
+
+# Optional: customize the notification appearance
+NOTIFY_TITLE="✅ Spring Boot Ready"
+NOTIFY_MESSAGE="App started"
+NOTIFY_SOUND="Glass"   # Glass / Ping / Purr / Sosumi / etc.
